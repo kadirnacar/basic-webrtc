@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "moduleResolution": "node",
+    "checkJs": false,
+    "skipLibCheck": true,
+    "lib": ["ES2019", "DOM"],
+    "types": ["node", "svelte"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}
