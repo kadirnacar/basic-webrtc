@@ -1,18 +1,14 @@
 import express from 'express';
+import * as http from 'http';
 import ws from 'ws';
 
-const app = express();
-const wsServer = new ws.Server({ noServer: true });
+const server = http.createServer(express);
+const wsServer = new ws.Server({ server });
 
-wsServer.on('connection', (socket) => {
-  socket.on('message', (message) => {
+wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {
+  socket.on('message', (message: ws.Data) => {
     console.log(message);
   });
 });
 
-const server = app.listen(3005);
-server.on('upgrade', (request, socket, head) => {
-  wsServer.handleUpgrade(request, socket, head, (socket) => {
-    wsServer.emit('connection', socket, request);
-  });
-});
+server.listen(3005);
