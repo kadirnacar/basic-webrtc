@@ -6,6 +6,7 @@ module.exports = {
   entry: {
     server: ['./server/index.ts'],
   },
+  watch: true,
   target: 'node',
   output: {
     path: path.resolve(__dirname, 'dist'),

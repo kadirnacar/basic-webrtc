@@ -7,7 +7,9 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build-server": "webpack --config webpack.config-server.js",
-    "serve": "webpack serve --config webpack.config.js"
+    "run-server": "nodemon ./dist/server/server.js",
+    "serve": "webpack serve --config webpack.config.js",
+    "run": "npm-run-all -p build-server run-server"
   },
   "author": "",
   "license": "ISC",
@@ -26,13 +28,17 @@
     "html-webpack-plugin": "^5.3.1",
     "mini-css-extract-plugin": "^1.5.0",
     "node-polyfill-webpack-plugin": "^1.1.0",
+    "npm-run-all": "^4.1.5",
+    "optimize-css-assets-webpack-plugin": "^5.0.4",
     "prettier": "2.2.1",
     "prettier-plugin-svelte": "^2.2.0",
     "style-loader": "^2.0.0",
     "svelte": "3.37.0",
     "svelte-loader": "^3.1.1",
+    "svelte-loader-hot": "^0.3.1",
     "svelte-preprocess": "^4.7.2",
     "svelte-routing": "^1.6.0",
+    "terser-webpack-plugin": "^5.1.1",
     "ts-loader": "^9.0.2",
     "typescript": "^4.2.4",
     "utf-8-validate": "^5.0.4",

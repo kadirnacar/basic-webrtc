@@ -3,7 +3,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
-const nodeExternals = require('webpack-node-externals');
+const TerserPlugin = require('terser-webpack-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
 module.exports = {
   devServer: {
@@ -16,7 +17,6 @@ module.exports = {
   },
   entry: {
     main: ['./src/main.ts'],
-    server: ['./server/index.ts'],
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -24,51 +24,29 @@ module.exports = {
     filename: 'js/[name].js',
   },
   mode: 'development',
+  devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/,
-        include: /src/,
+        exclude: /server/,
       },
       {
         test: /\.(html|svelte)$/,
-        include: /src/,
+        exclude: /server/,
         use: {
-          loader: 'svelte-loader',
+          loader: 'svelte-loader-hot',
           options: {
-            compilerOptions: {
-              css: true,
-            },
-            emitCss: true,
-            preprocess: require('svelte-preprocess')({}),
-            hotReload: true, // Default: false
-            // Extra HMR options, the defaults are completely fine
-            // You can safely omit hotOptions altogether
+            dev: true,
+            // emitCss: true,
+            // preprocess: require('svelte-preprocess')({}),
+            hotReload: true,
             hotOptions: {
-              // Prevent preserving local component state
               preserveLocalState: false,
-
-              // If this string appears anywhere in your component's code, then local
-              // state won't be preserved, even when noPreserveState is false
               noPreserveStateKey: '@!hmr',
-
-              // Prevent doing a full reload on next HMR update after fatal error
               noReload: false,
-
-              // Try to recover after runtime errors in component init
-              optimistic: false,
-
-              // --- Advanced ---
-
-              // Prevent adding an HMR accept handler to components with
-              // accessors option to true, or to components with named exports
-              // (from <script context="module">). This have the effect of
-              // recreating the consumer of those components, instead of the
-              // component themselves, on HMR updates. This might be needed to
-              // reflect changes to accessors / named exports in the parents,
-              // depending on how you use them.
+              optimistic: true,
               acceptAccessors: true,
               acceptNamedExports: true,
             },
@@ -78,12 +56,14 @@ module.exports = {
       {
         // required to prevent errors from Svelte on Webpack 5+, omit on Webpack 4
         test: /node_modules\/svelte\/.*\.mjs$/,
+        exclude: /server/,
         resolve: {
           fullySpecified: false,
         },
       },
       {
         test: /\.css$/,
+        exclude: /server/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
     ],
@@ -94,23 +74,55 @@ module.exports = {
     },
     extensions: ['.tsx', '.ts', '.mjs', '.js', '.svelte'],
     mainFields: ['svelte', 'browser', 'module', 'main'],
-    fallback: {
-      "fs": false,
-      "tls": false,
-      "net": false,
-      "path": false,
-      "zlib": false,
-      "http": false,
-      "https": false,
-      "stream": false,
-      "crypto": false,
-      "crypto-browserify": require.resolve('crypto-browserify'), //if you want to use this module also don't forget npm i crypto-browserify 
-    } 
+    // fallback: {
+    //   fs: false,
+    //   tls: false,
+    //   net: false,
+    //   path: false,
+    //   zlib: false,
+    //   http: false,
+    //   https: false,
+    //   stream: false,
+    //   crypto: false,
+    // },
   },
-  externals: [
-    nodeExternals({
-      // whitelist: ['webpack/hot/poll?100'],
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        // commons: {
+        //     chunks: "initial",
+        //     minChunks: 2,
+        //     maxInitialRequests: 5, // The default limit is too small to showcase the effect
+        //     minSize: 0 // This is example is too small to create commons chunks
+        // },
+        vendor: {
+          test: (module) => {
+            if (module.resource && /^.*\.(css|scss|sass)$/.test(module.resource)) {
+              return false;
+            }
+            return module.context && module.context.indexOf('node_modules') !== -1;
+          },
+          chunks: 'initial',
+          name: 'vendor',
+          priority: 10,
+          enforce: true,
+        },
+      },
+    },
+    minimizer: [new TerserPlugin(), new OptimizeCSSAssetsPlugin({})],
+  },
+  // externals: [{ express: 'express' }],
+  plugins: [
+    new webpack.HotModuleReplacementPlugin(),
+    new HtmlWebpackPlugin(),
+    new MiniCssExtractPlugin(),
+    new NodePolyfillPlugin(),
+    new webpack.LoaderOptionsPlugin({
+      debug: true,
+      options: {
+        debug: true,
+        cache: true,
+      },
     }),
   ],
-  plugins: [new webpack.HotModuleReplacementPlugin(), new HtmlWebpackPlugin(), new MiniCssExtractPlugin(), new NodePolyfillPlugin()],
 };
