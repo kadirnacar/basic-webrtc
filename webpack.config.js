@@ -40,7 +40,7 @@ module.exports = {
           options: {
             dev: true,
             // emitCss: true,
-            // preprocess: require('svelte-preprocess')({}),
+            preprocess: require('svelte-preprocess')({}),
             hotReload: true,
             hotOptions: {
               preserveLocalState: false,

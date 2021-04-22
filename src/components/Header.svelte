@@ -31,7 +31,10 @@ import { Link } from 'svelte-routing';
   </button>
   <ul class="navbar-nav px-3">
     <li class="nav-item text-nowrap">
-      <Link class="nav-link" to="/">Home</Link>
+      <Link class="nav-link" to="/">Streamer</Link>
+    </li>
+    <li class="nav-item text-nowrap">
+      <Link class="nav-link" to="/player">Player</Link>
     </li>
   </ul>
 </header>
