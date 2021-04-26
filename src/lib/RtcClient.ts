@@ -3,6 +3,7 @@ import { RtcSocketClient } from './RtcSocketClient';
 export class RtcClient {
   constructor(url: URL, private streamerId: string, path?: string, autoReconnect: boolean = true) {
     this.socketClient = new RtcSocketClient(url, path, autoReconnect);
+    this.socketClient.onOffer = this.onSocketOffer.bind(this);
     this.socketClient.onAnswer = this.onSocketAnswer.bind(this);
     this.socketClient.onClose = this.onSocketClose.bind(this);
     this.socketClient.onError = this.onSocketError.bind(this);
@@ -40,8 +41,6 @@ export class RtcClient {
     await this.createOffer();
   }
 
-  public async sendAnswer() {}
-
   public disconnect() {
     this.socketClient.disconnect();
     this.disposePeer();
@@ -55,6 +54,13 @@ export class RtcClient {
 
     await this.peer.setLocalDescription(offer);
     this.socketClient.sendMessage(JSON.stringify({ streamerId: this.streamerId, data: offer }));
+  }
+
+  private async createAnswer(msg) {
+    const answer = await this.peer.createAnswer();
+
+    await this.peer.setLocalDescription(answer);
+    this.socketClient.sendMessage(JSON.stringify({ playerId: msg.playerId, data: answer }));
   }
 
   private disposePeer() {
@@ -111,8 +117,14 @@ export class RtcClient {
   }
 
   private async onSocketAnswer(msg: any) {
-    var answerDesc = new RTCSessionDescription(msg);
+    const answerDesc = new RTCSessionDescription(msg.data);
     await this.peer.setRemoteDescription(answerDesc);
+  }
+
+  private async onSocketOffer(msg: any) {
+    const offer = new RTCSessionDescription(msg.data);
+    await this.peer.setRemoteDescription(offer);
+    await this.createAnswer(msg);
   }
 
   private onSocketClose(socket: WebSocket, ev: CloseEvent) {

@@ -27,7 +27,9 @@ const serveCam = async (ev: Event) => {
 
     rtcClient.onSignallingServerConnected = () => {
       console.log('Connected to Signalling Server');
-      stream.getTracks().forEach((track) => rtcClient.addTrack(track, stream));
+      stream.getVideoTracks().forEach((track) => {
+        rtcClient.addTrack(track, stream);
+      });
       connected = true;
     };
 
@@ -37,16 +39,14 @@ const serveCam = async (ev: Event) => {
       const stream: any = videoElement.srcObject;
       const tracks = stream.getTracks();
 
-      tracks.forEach(function (track) {
+      tracks.forEach((track) => {
         track.stop();
       });
 
       videoElement.srcObject = null;
     };
 
-    rtcClient.onMessage = (ev) => {
-      console.log(ev);
-    };
+    rtcClient.onMessage = (ev) => {};
 
     rtcClient.connectToSignalling();
   } else if (rtcClient) {
@@ -67,5 +67,5 @@ const serveCam = async (ev: Event) => {
   </li>
 </Sidebar>
 <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-  <video bind:this={videoElement} />
+  <video bind:this={videoElement} controls={false} muted />
 </div>

@@ -7,6 +7,7 @@ export class RtcSocketClient {
   public onError: ((socket: WebSocket, ev: Event) => boolean) | null;
   public onClose: ((socket: WebSocket, ev: CloseEvent) => any) | null;
   public onAnswer: ((msg: any) => any) | null;
+  public onOffer: ((msg: any) => any) | null;
   public onIceCandidate: ((msg: any) => any) | null;
   public onMessage: ((msg: any) => any) | null;
   public onOpen: ((socket: WebSocket, ev: Event) => any) | null;
@@ -14,11 +15,7 @@ export class RtcSocketClient {
   public connect() {
     if (!this.ws) {
       this.disconnectCommand = false;
-      this.ws = new WebSocket(
-        `${this.url.protocol == 'https' ? 'wss' : 'ws'}://${this.url.host}/${
-          this.path || ''
-        }`
-      );
+      this.ws = new WebSocket(`${this.url.protocol == 'https' ? 'wss' : 'ws'}://${this.url.host}/${this.path || ''}`);
       this.setEvents();
     }
   }
@@ -50,13 +47,19 @@ export class RtcSocketClient {
     };
 
     this.ws.onmessage = async (event) => {
-      var msg = JSON.parse(event.data);
-      if (msg.type === 'answer' && this.onAnswer) {
-        await this.onAnswer(msg);
-      } else if (msg.type === 'iceCandidate' && this.onIceCandidate) {
-        await this.onIceCandidate(msg.candidate);
-      } else if (this.onMessage) {
-        this.onMessage(msg);
+      const msg = JSON.parse(event.data);
+      try {
+        if (msg.data?.type === 'answer' && this.onAnswer) {
+          await this.onAnswer(msg);
+        } else if (msg.data?.type === 'offer' && this.onOffer) {
+          await this.onOffer(msg);
+        } else if (msg.data?.type === 'iceCandidate' && this.onIceCandidate) {
+          await this.onIceCandidate(msg.data.candidate);
+        } else if (this.onMessage) {
+          this.onMessage(msg);
+        }
+      } catch (err) {
+        console.error(err);
       }
     };
 

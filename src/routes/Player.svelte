@@ -7,6 +7,7 @@ import * as Tools from '../tools';
 let rtcClient: RtcClient;
 let connected = '';
 let streamers = [];
+let videoElement: HTMLVideoElement;
 
 onMount(async () => {
   const id = Tools.uuidv4();
@@ -28,12 +29,20 @@ onMount(async () => {
     }
   };
 
+  rtcClient.onStreamConnect = async (ev) => {
+    videoElement.srcObject = ev.streams[0];
+    videoElement.muted = true;
+      try {
+        await videoElement.play();
+      } catch {}
+    return null;
+  };
+
   rtcClient.connectToSignalling();
 });
 
 const connect = async (ev: Event, streamer) => {
   ev.preventDefault();
-  console.log(streamer);
   rtcClient.setStreamerId(streamer);
   await rtcClient.sendOffer();
 };
@@ -57,4 +66,6 @@ const connect = async (ev: Event, streamer) => {
     </li>
   {/each}
 </Sidebar>
-<div class="col-md-9 ms-sm-auto col-lg-10 px-md-4" />
+<div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <video bind:this={videoElement} controls={false} muted />
+</div>

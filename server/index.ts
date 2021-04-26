@@ -20,14 +20,18 @@ wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {
 
   socket.onmessage = (message: ws.MessageEvent) => {
     const msg = JSON.parse(message.data.toString());
-    if (msg) {
-      if (msg.type == 'getStreamers') {
-        socket.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) }));
-      } else if (msg.streamerId) {
-        streamers[msg.streamerId].send(JSON.stringify({ playerId: id, ...msg, streamerId: null }));
-      } else if (msg.playerId) {
-        clients[msg.playerId].send(JSON.stringify({ streamerId: id, ...msg, playerId: null }));
+    try {
+      if (msg) {
+        if (msg.type == 'getStreamers') {
+          socket.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) }));
+        } else if (msg.streamerId) {
+          streamers[msg.streamerId].send(JSON.stringify({ playerId: id, ...msg, streamerId: null }));
+        } else if (msg.playerId) {
+          clients[msg.playerId].send(JSON.stringify({ streamerId: id, ...msg, playerId: null }));
+        }
       }
+    } catch (ex) {
+      console.error(ex);
     }
   };
 
