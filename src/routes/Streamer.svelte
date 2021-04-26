@@ -23,18 +23,19 @@ const serveCam = async (ev: Event) => {
 
     const id = Tools.uuidv4();
 
-    rtcClient = new RtcClient(new URL('http://localhost:3005'), id, `${id}`, true);
+    rtcClient = new RtcClient(new URL('http://localhost:3005'), `${id}`, true);
 
     rtcClient.onSignallingServerConnected = () => {
       console.log('Connected to Signalling Server');
+      rtcClient.createStreamerPeer(id);
       stream.getVideoTracks().forEach((track) => {
-        rtcClient.addTrack(track, stream);
+        rtcClient.addTrack(id, track, stream);
       });
       connected = true;
     };
 
-    rtcClient.onDisconnect = (streamerId) => {
-      console.log('Disconnected from Signalling Server', streamerId);
+    rtcClient.onDisconnect = () => {
+      console.log('Disconnected from Signalling Server');
       connected = false;
       const stream: any = videoElement.srcObject;
       const tracks = stream.getTracks();

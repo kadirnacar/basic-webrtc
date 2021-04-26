@@ -8,43 +8,86 @@ let rtcClient: RtcClient;
 let connected = '';
 let streamers = [];
 let videoElement: HTMLVideoElement;
+let ws: WebSocket;
+let playerId: string;
 
 onMount(async () => {
-  const id = Tools.uuidv4();
+  playerId = Tools.uuidv4();
 
-  rtcClient = new RtcClient(new URL('http://localhost:3005'), id, `${id}/client`, true);
+  ws = new WebSocket(`ws://localhost:3005`);
 
-  rtcClient.onSignallingServerConnected = () => {
-    console.log('Connected to Signalling Server');
-    rtcClient.sendSocketMessage(JSON.stringify({ type: 'getStreamers' }));
-  };
-
-  rtcClient.onDisconnect = (streamerId) => {
-    console.log('Disconnected from Signalling Server', streamerId);
-  };
-
-  rtcClient.onMessage = (ev) => {
-    if (ev.type == 'streamers') {
-      streamers = ev.streamers;
+  ws.onmessage = (ev) => {
+    const data = JSON.parse(ev.data);
+    if (data.type == 'streamers') {
+      streamers = data.streamers;
     }
   };
 
-  rtcClient.onStreamConnect = async (ev) => {
-    videoElement.srcObject = ev.streams[0];
-    videoElement.muted = true;
-      try {
-        await videoElement.play();
-      } catch {}
-    return null;
+  ws.onopen = (event) => {
+    ws.send(JSON.stringify({ type: 'getStreamers' }));
   };
 
-  rtcClient.connectToSignalling();
+  // rtcClient = new RtcClient(new URL('http://localhost:3005'), `${id}/client`, true);
+
+  // rtcClient.onSignallingServerConnected = () => {
+  //   console.log('Connected to Signalling Server');
+  //   rtcClient.sendSocketMessage(JSON.stringify({ type: 'getStreamers' }));
+  // };
+
+  // rtcClient.onDisconnect = () => {
+  //   console.log('Disconnected from Signalling Server');
+  // };
+
+  // rtcClient.onMessage = (ev) => {
+  //   if (ev.type == 'streamers') {
+  //     streamers = ev.streamers;
+  //   }
+  // };
+
+  // rtcClient.onStreamConnect = async (ev) => {
+  //   videoElement.srcObject = ev.streams[0];
+  //   videoElement.muted = true;
+  //   try {
+  //     await videoElement.play();
+  //   } catch {}
+  //   return null;
+  // };
+
+  // rtcClient.connectToSignalling();
 });
 
 const connect = async (ev: Event, streamer) => {
   ev.preventDefault();
-  rtcClient.setStreamerId(streamer);
-  await rtcClient.sendOffer();
+
+  rtcClient = new RtcClient(new URL('http://localhost:3005'), `${playerId}/client`, true);
+
+  rtcClient.onSignallingServerConnected = async () => {
+    console.log('Connected to Signalling Server');
+    await rtcClient.sendOffer(streamer);
+  };
+
+  // rtcClient.onDisconnect = () => {
+  //   console.log('Disconnected from Signalling Server');
+  // };
+
+  // rtcClient.onMessage = (ev) => {
+  //   if (ev.type == 'streamers') {
+  //     streamers = ev.streamers;
+  //   }
+  // };
+
+  // rtcClient.onStreamConnect = async (ev) => {
+  //   videoElement.srcObject = ev.streams[0];
+  //   videoElement.muted = true;
+  //   try {
+  //     await videoElement.play();
+  //   } catch {}
+  //   return null;
+  // };
+
+  rtcClient.connectToSignalling();
+
+  // await rtcClient.sendOffer();
 };
 </script>
 

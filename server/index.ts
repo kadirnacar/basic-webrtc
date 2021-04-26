@@ -7,16 +7,21 @@ const wsServer = new ws.Server({ server });
 
 const clients: { [key: string]: ws } = {};
 const streamers: { [key: string]: ws } = {};
+const allClients: ws[] = [];
 
 wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {
   const id = request.url.split('/')[1];
 
-  if (request.url.endsWith('client')) {
-    clients[id] = socket;
-  } else {
-    streamers[id] = socket;
-    Object.keys(clients).forEach((x) => clients[x].send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
+  if (id) {
+    if (request.url.endsWith('client')) {
+      clients[id] = socket;
+    } else {
+      streamers[id] = socket;
+      allClients.forEach((x) => x.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
+    }
   }
+
+  allClients.push(socket);
 
   socket.onmessage = (message: ws.MessageEvent) => {
     const msg = JSON.parse(message.data.toString());
@@ -39,7 +44,7 @@ wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {
     delete clients[id];
     if (streamers[id]) {
       delete streamers[id];
-      Object.keys(clients).forEach((x) => clients[x].send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
+      allClients.forEach((x) => x.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
     }
   });
 });
