@@ -20,7 +20,6 @@ onMount(async () => {
   await rtcConn.connectServer();
   clientId = rtcConn.getClientId();
   rtcConn.onReceiveStream = (peerId, stream) => {
-    // console.log(peerId, track);
     rtcConn.addMediaStream(stream);
     videoElement.srcObject = stream;
     videoElement.muted = true;
