@@ -1,93 +1,39 @@
 <script type="ts">
-import { onMount } from 'svelte';
+import { onDestroy, onMount } from 'svelte';
+import { uuidv4 } from '../../tools';
 import Sidebar from '../components/Sidebar.svelte';
-import { RtcClient } from '../lib/RtcClient';
-import * as Tools from '../tools';
+import { RtcConnection } from '../lib/RtcConnection';
 
-let rtcClient: RtcClient;
-let connected = '';
-let streamers = [];
 let videoElement: HTMLVideoElement;
-let ws: WebSocket;
-let playerId: string;
+let rtcConn: RtcConnection;
+let clientId: string;
+let clients: any[] = [];
 
 onMount(async () => {
-  playerId = Tools.uuidv4();
-
-  ws = new WebSocket(`ws://localhost:3005`);
-
-  ws.onmessage = (ev) => {
-    const data = JSON.parse(ev.data);
-    if (data.type == 'streamers') {
-      streamers = data.streamers;
+  rtcConn = new RtcConnection(`ws://localhost:3005?clientId=${uuidv4()}&type=player`);
+  rtcConn.onMessage = (msg) => {
+    if (msg.type === 'clients') {
+      console.log(msg.data);
+      clients = msg.data.filter((x) => x.clientId !== clientId);
     }
   };
-
-  ws.onopen = (event) => {
-    ws.send(JSON.stringify({ type: 'getStreamers' }));
+  await rtcConn.connectServer();
+  clientId = rtcConn.getClientId();
+  rtcConn.onReceiveStream = (peerId, stream) => {
+    // console.log(peerId, track);
+    rtcConn.addMediaStream(stream);
+    videoElement.srcObject = stream;
+    videoElement.muted = true;
+    videoElement.play();
   };
-
-  // rtcClient = new RtcClient(new URL('http://localhost:3005'), `${id}/client`, true);
-
-  // rtcClient.onSignallingServerConnected = () => {
-  //   console.log('Connected to Signalling Server');
-  //   rtcClient.sendSocketMessage(JSON.stringify({ type: 'getStreamers' }));
-  // };
-
-  // rtcClient.onDisconnect = () => {
-  //   console.log('Disconnected from Signalling Server');
-  // };
-
-  // rtcClient.onMessage = (ev) => {
-  //   if (ev.type == 'streamers') {
-  //     streamers = ev.streamers;
-  //   }
-  // };
-
-  // rtcClient.onStreamConnect = async (ev) => {
-  //   videoElement.srcObject = ev.streams[0];
-  //   videoElement.muted = true;
-  //   try {
-  //     await videoElement.play();
-  //   } catch {}
-  //   return null;
-  // };
-
-  // rtcClient.connectToSignalling();
 });
 
-const connect = async (ev: Event, streamer) => {
-  ev.preventDefault();
+onDestroy(() => {
+  rtcConn.disconnectServer();
+});
 
-  rtcClient = new RtcClient(new URL('http://localhost:3005'), `${playerId}/client`, true);
-
-  rtcClient.onSignallingServerConnected = async () => {
-    console.log('Connected to Signalling Server');
-    await rtcClient.sendOffer(streamer);
-  };
-
-  // rtcClient.onDisconnect = () => {
-  //   console.log('Disconnected from Signalling Server');
-  // };
-
-  // rtcClient.onMessage = (ev) => {
-  //   if (ev.type == 'streamers') {
-  //     streamers = ev.streamers;
-  //   }
-  // };
-
-  // rtcClient.onStreamConnect = async (ev) => {
-  //   videoElement.srcObject = ev.streams[0];
-  //   videoElement.muted = true;
-  //   try {
-  //     await videoElement.play();
-  //   } catch {}
-  //   return null;
-  // };
-
-  rtcClient.connectToSignalling();
-
-  // await rtcClient.sendOffer();
+const connectStreamer = async (streamer) => {
+  await rtcConn.connectToPeer(streamer.clientId);
 };
 </script>
 
@@ -95,16 +41,31 @@ const connect = async (ev: Event, streamer) => {
 </style>
 
 <Sidebar>
-  {#each streamers as streamer, i}
+  <li class="nav-item">
+    <a
+      class={`nav-link btn btn-light`}
+      aria-current="page"
+      href="/"
+      on:click={(e) => {
+        e.preventDefault();
+      }}>
+      <span data-feather="home" />
+      {clientId}
+    </a>
+  </li>
+  {#each clients as client}
     <li class="nav-item">
       <a
-        class={`nav-link btn ${connected == streamer ? 'btn-danger' : 'btn-primary'}`}
+        class={`nav-link btn btn-primary`}
         aria-current="page"
         href="/"
-        on:click={(ev) => connect(ev, streamer)}>
+        on:click={(e) => {
+          e.preventDefault();
+          connectStreamer(client);
+        }}>
         <span data-feather="home" />
-        {streamer}
-        {connected == streamer ? 'Disconnect' : 'Connect'}
+        {client.type}
+        {client.clientId}
       </a>
     </li>
   {/each}

@@ -1,52 +1,43 @@
 import express from 'express';
 import * as http from 'http';
 import ws from 'ws';
+import { uuidv4 } from '../tools';
+import { URL } from 'url';
 
 const server = http.createServer(express);
 const wsServer = new ws.Server({ server });
-
-const clients: { [key: string]: ws } = {};
-const streamers: { [key: string]: ws } = {};
-const allClients: ws[] = [];
+const clients: { [id: string]: { socket: ws; type?: string } } = {};
 
 wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {
-  const id = request.url.split('/')[1];
+  const params = new Map(new URL(request.url, `http://${request.headers.host}`).searchParams.entries());
+  const clientId = params.get('clientId');
+  clients[clientId] = { socket: socket };
 
-  if (id) {
-    if (request.url.endsWith('client')) {
-      clients[id] = socket;
-    } else {
-      streamers[id] = socket;
-      allClients.forEach((x) => x.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
-    }
-  }
+  params.forEach((val, key) => {
+    clients[clientId][key] = val;
+  });
 
-  allClients.push(socket);
+  clients[clientId].socket.send(JSON.stringify({ type: 'connection', clientId, success: true }));
 
-  socket.onmessage = (message: ws.MessageEvent) => {
-    const msg = JSON.parse(message.data.toString());
-    try {
-      if (msg) {
-        if (msg.type == 'getStreamers') {
-          socket.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) }));
-        } else if (msg.streamerId) {
-          streamers[msg.streamerId].send(JSON.stringify({ playerId: id, ...msg, streamerId: null }));
-        } else if (msg.playerId) {
-          clients[msg.playerId].send(JSON.stringify({ streamerId: id, ...msg, playerId: null }));
-        }
-      }
-    } catch (ex) {
-      console.error(ex);
-    }
+  sendAll({ type: 'clients', data: Object.keys(clients).map((x) => ({ type: clients[x]['type'], clientId: x })) });
+
+  clients[clientId].socket.onmessage = (message: ws.MessageEvent) => {
+    const data = JSON.parse(message.data.toString());
+    clients[data.to].socket.send(message.data);
   };
 
-  socket.on('close', (code, reason) => {
-    delete clients[id];
-    if (streamers[id]) {
-      delete streamers[id];
-      allClients.forEach((x) => x.send(JSON.stringify({ type: 'streamers', streamers: Object.keys(streamers) })));
-    }
+  clients[clientId].socket.on('close', (code, reason) => {
+    delete clients[clientId];
+    sendAll({ type: 'clients', data: Object.keys(clients).map((x) => ({ type: clients[x]['type'], clientId: x })) });
   });
 });
+
+const sendAll = (data: any, exclude: string[] = []) => {
+  Object.keys(clients)
+    .filter((x) => exclude.indexOf(x) == -1)
+    .forEach((x) => {
+      clients[x].socket.send(JSON.stringify(data));
+    });
+};
 
 server.listen(3005);

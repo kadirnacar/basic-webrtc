@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "build-server": "webpack --config webpack.config-server.js",
-    "run-server": "nodemon ./dist/server/server.js",
+    "run-server": "nodemon --inspect ./dist/server/server.js",
     "serve": "webpack serve --config webpack.config.js",
     "run": "npm-run-all -p build-server run-server"
   },

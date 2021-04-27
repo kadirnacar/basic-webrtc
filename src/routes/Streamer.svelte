@@ -1,57 +1,52 @@
 <script type="ts">
-import { onMount } from 'svelte';
+import { onDestroy, onMount } from 'svelte';
+import { uuidv4 } from '../../tools';
+
 import Sidebar from '../components/Sidebar.svelte';
-import { RtcClient } from '../lib/RtcClient';
-import * as Tools from '../tools';
+import { RtcConnection } from '../lib/RtcConnection';
 
 let connected = false;
-let rtcClient: RtcClient;
 let videoElement: HTMLVideoElement;
+let stream: MediaStream;
 const constraints = {
   audio: false,
   video: true,
 };
+let rtcConn: RtcConnection;
+let clientId: string;
+let clients: string[] = [];
 
-onMount(async () => {});
+const connect = async () => {
+  rtcConn = new RtcConnection(`ws://localhost:3005?clientId=${uuidv4()}&type=streamer`);
+  rtcConn.onMessage = (msg) => {
+    if (msg.type === 'clients') {
+      clients = msg.data.filter((x) => x !== clientId);
+    }
+  };
+  await rtcConn.connectServer();
+  clientId = rtcConn.getClientId();
+};
+
+onDestroy(() => {
+  if (rtcConn) {
+    rtcConn.disconnectServer();
+  }
+});
 
 const serveCam = async (ev: Event) => {
   ev.preventDefault();
   if (!connected) {
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    await connect();
+    stream = await navigator.mediaDevices.getUserMedia(constraints);
+    rtcConn.addMediaStream(stream);
     videoElement.srcObject = stream;
     videoElement.play();
-
-    const id = Tools.uuidv4();
-
-    rtcClient = new RtcClient(new URL('http://localhost:3005'), `${id}`, true);
-
-    rtcClient.onSignallingServerConnected = () => {
-      console.log('Connected to Signalling Server');
-      rtcClient.createStreamerPeer(id);
-      stream.getVideoTracks().forEach((track) => {
-        rtcClient.addTrack(id, track, stream);
-      });
-      connected = true;
-    };
-
-    rtcClient.onDisconnect = () => {
-      console.log('Disconnected from Signalling Server');
-      connected = false;
-      const stream: any = videoElement.srcObject;
-      const tracks = stream.getTracks();
-
-      tracks.forEach((track) => {
-        track.stop();
-      });
-
-      videoElement.srcObject = null;
-    };
-
-    rtcClient.onMessage = (ev) => {};
-
-    rtcClient.connectToSignalling();
-  } else if (rtcClient) {
-    rtcClient.disconnect();
+    connected = true;
+  } else {
+    videoElement.srcObject = null;
+    stream.getTracks().forEach((x) => x.stop());
+    connected = false;
+    rtcConn.disconnectServer();
   }
 };
 </script>
