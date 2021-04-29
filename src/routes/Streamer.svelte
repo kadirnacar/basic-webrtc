@@ -8,12 +8,10 @@ import { RtcConnection } from '../lib/RtcConnection';
 let connected = false;
 let videoElement: HTMLVideoElement;
 let stream: MediaStream;
-const constraints = {
+const constraints: MediaStreamConstraints = {
   audio: false,
   video: {
-    facingMode: {
-      exact: 'environment'
-    }
+    facingMode: 'environment',
   },
 };
 let rtcConn: RtcConnection;
@@ -32,6 +30,11 @@ const connect = async () => {
 };
 
 onDestroy(() => {
+  connected = false;
+  if (stream) {
+    stream.getTracks().forEach((x) => x.stop());
+  }
+
   if (rtcConn) {
     rtcConn.disconnectServer();
   }
@@ -41,6 +44,7 @@ const serveCam = async (ev: Event) => {
   ev.preventDefault();
   if (!connected) {
     await connect();
+    console.log(navigator.mediaDevices.getSupportedConstraints());
     stream = await navigator.mediaDevices.getUserMedia(constraints);
     rtcConn.addMediaStream(stream);
     videoElement.srcObject = stream;
