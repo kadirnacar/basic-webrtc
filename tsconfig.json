@@ -3,6 +3,8 @@
     "target": "ES2019",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "checkJs": false,
     "skipLibCheck": true,
     "lib": ["ES2019", "DOM"],

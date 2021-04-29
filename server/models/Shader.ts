@@ -1,6 +1,14 @@
+import { Column, Entity, PrimaryKey } from '../realm/decorators';
+
+@Entity('Shader')
 export class Shader {
-  public id: string;
-  public Name: string;
-  public Vertex: string;
-  public Fragment: string;
+  @PrimaryKey()
+  @Column()
+  id: string;
+  @Column()
+  Name: string;
+  @Column()
+  Vertex: string;
+  @Column()
+  Fragment: string;
 }

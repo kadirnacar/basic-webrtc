@@ -1,3 +1,5 @@
 /node_modules
 /dist
 package-lock.json
+database.realm
+database.realm.lock

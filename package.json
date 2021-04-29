@@ -66,6 +66,8 @@
     "svelteIndentScriptAndStyle": false
   },
   "dependencies": {
-    "body-parser": "^1.19.0"
+    "body-parser": "^1.19.0",
+    "realm": "^10.4.0",
+    "reflect-metadata": "^0.1.13"
   }
 }
