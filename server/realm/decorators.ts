@@ -31,7 +31,7 @@ export function Column(
     | 'linkingObjects'
     | ObjectSchemaProperty
 ): PropertyDecorator {
-  return function (object: Object, propertyName: string) {
+  return function (object: Object, propertyName: string | symbol) {
     let metadata = Reflect.get(object.constructor, 'schema');
     if (!metadata) {
       metadata = { properties: {} };
@@ -51,7 +51,7 @@ export function Column(
 }
 
 export function PrimaryKey(): PropertyDecorator {
-  return function (object: Object, propertyName: string) {
+  return function (object: Object, propertyName: string | symbol) {
     let metadata = Reflect.get(object.constructor, 'schema');
     if (!metadata) {
       metadata = { properties: {} };
