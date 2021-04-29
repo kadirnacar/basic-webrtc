@@ -1,10 +1,12 @@
 import express from 'express';
 import * as https from 'https';
 import * as http from 'http';
+import * as bodyParser from 'body-parser';
 import ws from 'ws';
 import fs from 'fs';
 import path from 'path';
 import { URL } from 'url';
+import { ShaderRouter } from './routes/shaderRoute';
 
 const options = {
   pfx: fs.readFileSync(path.join(__dirname, './powershellcert.pfx')),
@@ -12,6 +14,8 @@ const options = {
 };
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 const server = https.createServer(options, app);
 const wsServer = new ws.Server({ server: server });
 const clients: { [id: string]: { socket: ws; type?: string } } = {};
@@ -47,5 +51,7 @@ const sendAll = (data: any, exclude: string[] = []) => {
       clients[x].socket.send(JSON.stringify(data));
     });
 };
+
+app.use('/', new ShaderRouter().router);
 
 server.listen(3005);
