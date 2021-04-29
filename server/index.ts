@@ -1,11 +1,19 @@
 import express from 'express';
+import * as https from 'https';
 import * as http from 'http';
 import ws from 'ws';
-import { uuidv4 } from '../tools';
+import fs from 'fs';
+import path from 'path';
 import { URL } from 'url';
 
-const server = http.createServer(express);
-const wsServer = new ws.Server({ server });
+const options = {
+  pfx: fs.readFileSync(path.join(__dirname, './powershellcert.pfx')),
+  passphrase: 'password1234',
+};
+
+const app = express();
+const server = https.createServer(options, app);
+const wsServer = new ws.Server({ server: server });
 const clients: { [id: string]: { socket: ws; type?: string } } = {};
 
 wsServer.on('connection', (socket: ws, request: http.IncomingMessage) => {

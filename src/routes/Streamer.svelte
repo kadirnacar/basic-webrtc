@@ -10,14 +10,18 @@ let videoElement: HTMLVideoElement;
 let stream: MediaStream;
 const constraints = {
   audio: false,
-  video: true,
+  video: {
+    facingMode: {
+      exact: 'environment'
+    }
+  },
 };
 let rtcConn: RtcConnection;
 let clientId: string;
 let clients: string[] = [];
 
 const connect = async () => {
-  rtcConn = new RtcConnection(`ws://localhost:3005?clientId=${uuidv4()}&type=streamer`);
+  rtcConn = new RtcConnection(`wss://${window.location.hostname}:3005?clientId=${uuidv4()}&type=streamer`);
   rtcConn.onMessage = (msg) => {
     if (msg.type === 'clients') {
       clients = msg.data.filter((x) => x !== clientId);

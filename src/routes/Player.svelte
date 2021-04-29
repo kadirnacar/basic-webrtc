@@ -10,7 +10,8 @@ let clientId: string;
 let clients: any[] = [];
 
 onMount(async () => {
-  rtcConn = new RtcConnection(`ws://localhost:3005?clientId=${uuidv4()}&type=player`);
+  console.log(window.location)
+  rtcConn = new RtcConnection(`wss://${window.location.hostname}:3005?clientId=${uuidv4()}&type=player`);
   rtcConn.onMessage = (msg) => {
     if (msg.type === 'clients') {
       console.log(msg.data);

@@ -8,7 +8,7 @@
     "build": "webpack --config webpack.config.js",
     "build-server": "webpack --config webpack.config-server.js",
     "run-server": "nodemon --inspect ./dist/server/server.js",
-    "serve": "webpack serve --config webpack.config.js",
+    "serve": "webpack serve --config webpack.config.js --host 0.0.0.0",
     "run": "npm-run-all -p build-server run-server"
   },
   "author": "",
