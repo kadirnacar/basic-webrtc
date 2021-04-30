@@ -40,7 +40,6 @@ onMount(() => {
     gutters: ['CodeMirror-linenumbers', 'breakpoints'],
     autofocus: true,
     indentWithTabs: true,
-
     // indentUnit: main.options.indentUnit,
     // tabSize: main.options.tabSize,
     // indentWithTabs: main.options.indentWithTabs,
@@ -48,13 +47,14 @@ onMount(() => {
     // lineWrapping: main.options.lineWrapping,
     // autofocus: main.options.autofocus,
   });
+  editor.setSize('100%', "800px");
 });
 </script>
 
 <style>
 </style>
 
-<div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+<div class="col-md-12 ms-sm-auto col-lg-12  px-md-4">
   <textarea bind:this={codeEditor}>
     {`/**
     *  Press "Esc" to save, compile and run your program
