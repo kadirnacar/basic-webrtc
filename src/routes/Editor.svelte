@@ -40,12 +40,6 @@ onMount(() => {
     gutters: ['CodeMirror-linenumbers', 'breakpoints'],
     autofocus: true,
     indentWithTabs: true,
-    // indentUnit: main.options.indentUnit,
-    // tabSize: main.options.tabSize,
-    // indentWithTabs: main.options.indentWithTabs,
-    // gutters: main.options.lineNumbers ? ['CodeMirror-linenumbers', 'breakpoints'] : false,
-    // lineWrapping: main.options.lineWrapping,
-    // autofocus: main.options.autofocus,
   });
   editor.setSize('100%', "800px");
 });
