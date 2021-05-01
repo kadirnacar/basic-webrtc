@@ -3,3 +3,5 @@
 package-lock.json
 database.realm
 database.realm.lock
+database.realm.management/access_control.write.mx
+database.realm.management/access_control.control.mx

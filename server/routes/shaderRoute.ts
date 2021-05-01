@@ -1,6 +1,6 @@
 import ShaderService from '../services/shader';
 import { Request, Response, Router } from 'express';
-import { Shader } from '../models/shader';
+import { Shader } from '../models/Shader';
 import { uuidv4 } from '../../tools';
 import { RealmService } from '../realm/RealmService';
 
