@@ -4,6 +4,7 @@ import * as Routing from 'svelte-routing';
 import Layout from './components/Layout.svelte';
 import Streamer from './routes/Streamer.svelte';
 import Player from './routes/Player.svelte';
+import Editor from './routes/Editor.svelte';
 
 export let url = '';
 onMount(async () => {});
@@ -23,6 +24,7 @@ onMount(async () => {});
     <div class="justify-content-between align-items-center pt-3 pb-3 laycontainer">
       <Routing.Route path="/"><Streamer /></Routing.Route>
       <Routing.Route path="/player"><Player /></Routing.Route>
+      <Routing.Route path="/editor"><Editor /></Routing.Route>
     </div>
   </Layout>
 </Routing.Router>

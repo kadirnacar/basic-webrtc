@@ -36,5 +36,8 @@ import { Link } from 'svelte-routing';
     <li class="nav-item text-nowrap">
       <Link class="nav-link" to="/player">Player</Link>
     </li>
+    <li class="nav-item text-nowrap">
+      <Link class="nav-link" to="/editor">Editor</Link>
+    </li>
   </ul>
 </header>
