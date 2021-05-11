@@ -11,7 +11,7 @@
   
   onMount(async () => {
     console.log(window.location)
-    rtcConn = new RtcConnection(`wss://${window.location.hostname}:3005?clientId=${uuidv4()}&type=player`);
+    rtcConn = new RtcConnection(`ws://${window.location.hostname}:3005?clientId=${uuidv4()}&type=player`);
     rtcConn.onMessage = (msg) => {
       if (msg.type === 'clients') {
         console.log(msg.data);

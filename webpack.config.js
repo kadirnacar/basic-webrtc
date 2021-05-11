@@ -9,7 +9,7 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 module.exports = {
   devServer: {
     host: '0.0.0.0',
-    https: true,
+    // https: true,
     historyApiFallback: true,
     contentBase: path.resolve(__dirname, './dist'),
     disableHostCheck: true,

@@ -19,7 +19,7 @@ let clientId: string;
 let clients: string[] = [];
 
 const connect = async () => {
-  rtcConn = new RtcConnection(`wss://${window.location.hostname}:3005?clientId=${uuidv4()}&type=streamer`);
+  rtcConn = new RtcConnection(`ws://${window.location.hostname}:3005?clientId=${uuidv4()}&type=streamer`);
   rtcConn.onMessage = (msg) => {
     if (msg.type === 'clients') {
       clients = msg.data.filter((x) => x !== clientId);

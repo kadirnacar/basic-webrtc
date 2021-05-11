@@ -16,7 +16,8 @@ const options = {
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-const server = https.createServer(options, app);
+const server = http.createServer(app);
+// const server = https.createServer(options, app);
 const wsServer = new ws.Server({ server: server });
 const clients: { [id: string]: { socket: ws; type?: string } } = {};
 
